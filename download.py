@@ -19,10 +19,8 @@ response = requests.get(url)
 
 if response.status_code == 200:
     data = response.text
-    # Do something with the downloaded data
-    _test = data.split("<pre><code>")[1].split("</code></pre>")[0].removesuffix("\n")
     with open(HOME/folder_name/"test.txt", "w") as file:
-        file.write(_test)
+        file.write(data.split("<pre><code>")[1].split("</code></pre>")[0].removesuffix("\n"))
 else:
     print(f"Failed to download data from {url}")
 
@@ -33,7 +31,7 @@ response = requests.get(url, cookies={"session": COOKIE})
 if response.status_code == 200:
     data = response.text
     with open(HOME / folder_name / "input.txt", "w") as file:
-        file.write(data)
+        file.write(data.removesuffix("\n"))
 else:
     print(f"Failed to download data from {url}")
 
