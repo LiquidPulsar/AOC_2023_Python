@@ -9,7 +9,5 @@ with open(HOME/"input.txt") as f:
         lines = [history]
         while any(lines[-1]):
             lines.append([b-a for a, b in zip(lines[-1], lines[-1][1:])])
-        col = [line[0] for line in lines]
-        s = sum(col[::2]) - sum(col[1::2])
-        tot += s
+        tot += sum(line[-1] for line in lines)
     print(tot)
