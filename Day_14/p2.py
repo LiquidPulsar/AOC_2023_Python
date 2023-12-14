@@ -8,9 +8,9 @@ def roll_up(board):
             if char == "O":
                 r = row
                 while r>0 and board[r-1][col]==".":
-                    board[r-1][col] = "O"
                     board[r][col] = "."
                     r -= 1
+                board[r][col] = "O"
     return board
 
 def calc_load(board):
@@ -25,13 +25,12 @@ with open(HOME/"input.txt") as f:
     states = {}
     state_list = []
     for i in range(1,END+1): # 1000000001
+        if "\n".join(map("".join,board)) in states:
+            prev = states["\n".join(map("".join,board))]
+            index = prev + (END - i) % (i - prev)
+            print(state_list[index])
+            break
         states["\n".join(map("".join,board))] = i
         state_list.append(calc_load(board))
         for _ in range(4):
             board = [*map(list,zip(*roll_up(board)[::-1]))]
-
-        if "\n".join(map("".join,board)) in states:
-            prev = states["\n".join(map("".join,board))]
-            index = prev + (END - i) % (i - prev + 1) - 1
-            print(state_list[index])
-            break
