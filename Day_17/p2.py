@@ -22,34 +22,40 @@ def neighbors(y,x,d,s):
     n = (d-1) % 4
     yield (*shift(y,x,n),n,1)
 
-# Improvement: replace priority queue with a list of lists
-# we know the costs are always 1-9, so we can just have a list of 10 lists
+# Could do a priority queue again, and make neighbours do 4-10 steps
 with open(HOME/"input.txt") as f:
     board = [list(map(int,line.strip())) for line in f]
 
-    todo:list[tuple[int,int,int,int,int]] = [(0,0,0,1,0),(0,0,0,2,0)] # cost,y,x,dir,steps
-    heapify(todo)
+    # todo:list[tuple[int,int,int,int,int]] = [(0,0,0,1,0),(0,0,0,2,0)] # cost,y,x,dir,steps
+    # heapify(todo)
 
     costs = defaultdict(lambda: float("inf"))
     prev = {}
     costs[(0,0,1,0)] = 0
 
-    while todo:
-        c,y,x,d,s = heappop(todo)
+    todo = [[] for _ in range(10)]
+    todo[0].extend([(0,0,0,1,0),(0,0,0,2,0)])
 
-        if x==len(board[0])-1 and y==len(board)-1 and s>=4:
-            best = (y,x,d,s)
-            break
+    while True:
+        for c,y,x,d,s in todo[0]:
+            if x==len(board[0])-1 and y==len(board)-1 and s>=4:
+                best = (y,x,d,s)
+                break
 
-        if costs[(y,x,d,s)] < s: continue
+            if costs[(y,x,d,s)] < s: continue
 
-        for n in neighbors(y,x,d,s):
-            ny,nx,nd,ns = n
-            if ny<0 or nx<0 or ny>=len(board) or nx>=len(board[0]): continue
-            if costs[(ny,nx,nd,ns)] <= c+board[ny][nx]: continue
-            prev[(ny,nx,nd,ns)] = (y,x,d,s)
-            costs[(ny,nx,nd,ns)] = c+board[ny][nx]
-            heappush(todo,(c+board[ny][nx],ny,nx,nd,ns))
+            for n in neighbors(y,x,d,s):
+                ny,nx,nd,ns = n
+                if ny<0 or nx<0 or ny>=len(board) or nx>=len(board[0]): continue
+                if costs[(ny,nx,nd,ns)] <= c+board[ny][nx]: continue
+                prev[(ny,nx,nd,ns)] = (y,x,d,s)
+                costs[(ny,nx,nd,ns)] = c+board[ny][nx]
+                todo[board[ny][nx]].append((c+board[ny][nx],ny,nx,nd,ns))
+        else:
+            del todo[0]
+            todo.append([])
+            if any(todo): continue
+        break
     
     curr = best
     while curr in prev:
