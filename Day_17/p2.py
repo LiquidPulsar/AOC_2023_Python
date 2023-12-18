@@ -57,11 +57,11 @@ with open(HOME/"input.txt") as f:
             if any(todo): continue
         break
     
-    curr = best
+    curr = best # type: ignore
     while curr in prev:
         board[curr[0]][curr[1]] = Fore.GREEN + colors[curr[2]] + Style.RESET_ALL
         # board[curr[0]][curr[1]] = f"{Fore.GREEN}{board[curr[0]][curr[1]]}{Style.RESET_ALL}"
         curr = prev[curr]
 
     for l in board: print(*l,sep="")
-    print(c)
+    print(c) # type: ignore

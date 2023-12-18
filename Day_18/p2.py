@@ -10,17 +10,17 @@ moves = {
     "R": 1,
 }
 
-hexes = "RDLU"
+hexes  = "RDLU"
 
 with open(HOME/"input.txt") as f:
     dig:dict[complex,list[int|None]] = {} # pos: color
     edges_dug = 0
     pos = 0j
     shoelace = [0j]
-    for dir,length,_ in re.findall(r"([UDLR]) (\d+) \(#(\w+)\)",f.read()):
-        length = int(length)
+    for _,_,col in re.findall(r"([UDLR]) (\d+) \(#(\w+)\)",f.read()):
+        length = int(col[:-1],16)
         edges_dug += length
-        pos += moves[dir]*length
+        pos += moves[hexes[int(col[-1],16)]]*length
         shoelace.append(pos)
 
     area = abs(sum(
