@@ -73,53 +73,65 @@ with open(HOME/"input.txt") as f:
 
         y,X = start
         loop = set()
-        for step in count(1):
-            loop.add((y,X))
+        shoelace = [y+X*1j]
+        while True:
             d = dct.get((y,X,d))
             if d is None:
                 break
             y += deltas[d][0]
             X += deltas[d][1]
+            loop.add((y,X))
+            shoelace.append(y+X*1j)
             if (y,X) == start: break
         if d is None:
             print("No path for",letter)
         elif dct[(y,X,d)] is not None:
-            print("Path for",letter,step,step//2) # type: ignore
+            # print("Path for",letter,step,step//2) # type: ignore
 
-            area = 0
-            for Y,line in enumerate(board):
-                for X,c in enumerate(line):
-                    if (Y,X) not in loop:
-                        left = None
-                        crosses = 0
-                        # print("Searching",Y,x,"...")
-                        for y in range(Y):
-                            # print(y,x,board[y][x],left)
-                            if (y,X) not in loop: continue
+            # area = 0
+            # for Y,line in enumerate(board):
+            #     for X,c in enumerate(line):
+            #         if (Y,X) not in loop:
+            #             left = None
+            #             crosses = 0
+            #             # print("Searching",Y,x,"...")
+            #             for y in range(Y):
+            #                 # print(y,x,board[y][x],left)
+            #                 if (y,X) not in loop: continue
 
-                            if board[y][X] == "7":
-                                left = True
-                            elif board[y][X] == "F":
-                                left = False
-                            elif board[y][X] == "L":
-                                if left: crosses += 1
-                                left = None
-                            elif board[y][X] == "J":
-                                if left == False: crosses += 1
-                                left = None
-                            elif board[y][X] == "-":
-                                assert left is None, (Y,X,y,left)
-                                crosses += 1
-                            else:
-                                assert board[y][X] == "|", (Y,X,y,board[y][X])
+            #                 if board[y][X] == "7":
+            #                     left = True
+            #                 elif board[y][X] == "F":
+            #                     left = False
+            #                 elif board[y][X] == "L":
+            #                     if left: crosses += 1
+            #                     left = None
+            #                 elif board[y][X] == "J":
+            #                     if left == False: crosses += 1
+            #                     left = None
+            #                 elif board[y][X] == "-":
+            #                     assert left is None, (Y,X,y,left)
+            #                     crosses += 1
+            #                 else:
+            #                     assert board[y][X] == "|", (Y,X,y,board[y][X])
 
-                        # crosses = sum((y,x) in loop and board[y][x] not in "|7F" for y in range(y))
-                        if crosses % 2 == 1:
-                            area += 1
-                            board[Y][X] = f"{Fore.GREEN}O{Style.RESET_ALL}"
-                        else:
-                            board[Y][X] = f"{Fore.RED}O{Style.RESET_ALL}"
-            print(area)
+            #             # crosses = sum((y,x) in loop and board[y][x] not in "|7F" for y in range(y))
+            #             if crosses % 2 == 1:
+            #                 area += 1
+            #                 board[Y][X] = f"{Fore.GREEN}O{Style.RESET_ALL}"
+            #             else:
+            #                 board[Y][X] = f"{Fore.RED}O{Style.RESET_ALL}"
+            
+            # Pick's and Shoelace formulas
+            area_2 = abs(sum(
+                a.real * b.imag
+                - b.real * a.imag
+                for a,b in zip(shoelace,shoelace[1:])
+            )) / 2
+
+            num_ext_points = len(shoelace) - 1
+            # print(area)
+            print(area_2 + 1 - num_ext_points / 2)
             for y,X in loop:
                 assert board[y][X] != "."
                 board[y][X] = f"{Fore.BLUE}{board[y][X]}{Style.RESET_ALL}"
