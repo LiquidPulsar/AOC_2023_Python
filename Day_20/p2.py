@@ -75,7 +75,7 @@ with open(HOME/"input.txt") as f:
     dcts = {}
 
     print(counters)
-    for i in count(1):
+    for i in count(1): # sourcery skip
         todo = deque([("broadcaster","button",LOW)])
         inputs["broadcaster"]["button"] = LOW
         while todo:

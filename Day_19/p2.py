@@ -16,7 +16,7 @@ class Rule:
     def __call__(self, xmas:Xmas) -> int:
         # print("Rule",self.letter,self.direction,self.threshold,self.result,xmas)
         if self.direction == "<":
-            if xmas[self.letter + "l"] < self.threshold:
+            if xmas[self.letter + "l"] < self.threshold: # sourcery skip
                 copy = xmas.copy()
                 copy[self.letter + "h"] = min(copy[self.letter + "h"], self.threshold-1)
                 xmas[self.letter + "l"] = self.threshold
@@ -51,7 +51,7 @@ def solve(curr:str, xmas:Xmas) -> int:
              * (xmas["mh"] - xmas["ml"] + 1) \
              * (xmas["ah"] - xmas["al"] + 1) \
              * (xmas["sh"] - xmas["sl"] + 1)
-    if curr == "R":
+    if curr == "R": # sourcery skip
         return 0
     return flowdict[curr](xmas)
 
