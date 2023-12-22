@@ -29,13 +29,15 @@ with open(HOME/"input.txt") as f:
     start = (x, y)
 
     step_cnts = []
+    todo:deque[tuple[int,int,int]] = deque([(*start, 0)])
+    visited = set()
+    visited_oe = [set(),set()]
     for max_steps in range(65,131*3+65,131):
-        todo:deque[tuple[int,int,int]] = deque([(*start, 0)])
-        visited = set()
-        visited_oe = [set(),set()]
         while todo:
             x, y, steps = todo.popleft()
-            if steps > max_steps: break
+            if steps > max_steps:
+                todo.appendleft((x, y, steps))
+                break
 
             if (x, y) in visited:
                 continue
