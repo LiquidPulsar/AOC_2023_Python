@@ -2,6 +2,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from colorama import Fore, Style
 
+# from time import time
+# _t = time()
+
 HOME = Path(__file__).parent
 NINF = int(-1e9)
 
@@ -12,7 +15,7 @@ def print_board():
     print()
     for l in board: print(*l,sep="")
 
-print_board()
+# print_board()
 
 # Represent section by start, end, length, exits on each end
 # (not generalised but from observation)
@@ -120,71 +123,54 @@ def find_ends(y,x,seen) -> tuple[Coord,Coord,int]:
     while len(ends)<2: ends.append(((y,x),0))
 
     (a,l1),(b,l2) = ends
-    print(l1,l2,y,x)
     return a,b,l1+l2+1
 
 seen = set()
 secs:list[Section] = []
 end_to_sec:dict[Coord,Section] = {}
 i = 0
+nodes = {}
 for y,row in enumerate(board):
-    for x,c in  enumerate(row):
+    for x,c in enumerate(row):
         if c == "." and (y,x) not in seen:
             s = Section.from_search(i,y,x,seen)
+            if s.length == 1:
+                nodes[s.id] = []
             i += 1
             end_to_sec[s.start] = s
             end_to_sec[s.end] = s
             secs.append(s)
-            print(s)
+            # print(s)
 
-# for sec in secs: sec.highlight()
-# print_board()
-# for sec in secs: sec.unhighlight()
-# print_board()
+END_ID = -2
+for _id, lst in nodes.items():
+    sec:Section = secs[_id]
+    for start in sec.e_exits:
+        arc = end_to_sec[start]
+        outs = arc.exits_from(start)
+        assert len(outs)<=1
+        if len(outs) == 1:
+            # one gate to get into arc (if we weren't at START), one to get out
+            lst.append((arc.length+2, end_to_sec[outs[0]].id))
+        elif start[0] != 0: # The true starting node is the other case but we dont want it
+            lst.append((arc.length+1,END_ID))
 
-# Check all connected together properly
-for s in secs:
-    for e in s.s_exits: assert e in end_to_sec
-    for e in s.e_exits: assert e in end_to_sec
+nodes[0] = [(secs[0].length,end_to_sec[conn].id) 
+            for conn in secs[0].e_exits]
 
-start = secs[0]
-assert start.start[0] == 0
+def _dfs(node,seen):
+    if node == END_ID: return 0
+    seen.add(node)
+    res = max(
+        (l + 1 + _dfs(target,seen)
+        for l,target in nodes[node]
+        if target not in seen),
+        default=NINF
+    )
+    seen.remove(node)
+    return res
 
-def dfs(coord,seen):
-    sec = end_to_sec[coord]
-    if sec.id in seen: return NINF
-    seen.add(sec.id)
-    opts = [NINF*(sec.end[0]<H-1 or coord!=sec.start)]
-    # No exits on the same coords as entries (except singletons 
-    # but that's ok as we can take the "other end" anyway)
-    opts.extend(1 + dfs(nxt,seen) for nxt in sec.exits_from(coord)) # 1 for the gate
+l = _dfs(0,set()) - 1
 
-    seen.remove(sec.id)
-    return sec.length + max(opts) # even if no continuation, still add length
-
-def tracked_dfs(coord,seen) -> tuple[int,list[int]]:
-    sec = end_to_sec[coord]
-    if sec.id in seen: return NINF,[]
-    seen.add(sec.id)
-    opts:list[tuple[int,list[int]]] = [(NINF*(
-        sec.end[0]<H-1 or coord!=sec.start
-    ),[])]
-    # No exits on the same coords as entries (except singletons 
-    # but that's ok as we can take the "other end" anyway)
-    for nxt in sec.exits_from(coord):
-        l,p = tracked_dfs(nxt,seen)
-        opts.append((1 + l, p)) # 1 for the gate
-
-    seen.remove(sec.id)
-    l,p = max(opts)
-    p.append(sec.id)
-    return sec.length + l, p # even if no continuation, still add length
-
-l = dfs(start.start,set())
-# assert l == tracked_dfs(start.start,set())[0]
-# l,p = tracked_dfs(start.start,set())
-# for _id in p: secs[_id].highlight()
-# print_board()
-
-# print(*(secs[_id].length for _id in p))
-print(l-1)
+print(l)
+# print(time()-_t)
