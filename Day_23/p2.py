@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from colorama import Fore, Style
 
-# from time import time
-# _t = time()
+from time import time
+_t = time()
 
 HOME = Path(__file__).parent
 NINF = int(-1e9)
@@ -36,7 +36,7 @@ class Section:
         s,e,l = find_ends(y,x,seen)
         s,e = sorted((s,e)) # just to have the start be smaller
         return cls(
-            id, s,e,l,exits(*s),exits(*e)
+            id,s,e,l,exits(*s),exits(*e)
         )
 
     def exits_from(self, coord: Coord):
@@ -150,27 +150,36 @@ for _id, lst in nodes.items():
         outs = arc.exits_from(start)
         assert len(outs)<=1
         if len(outs) == 1:
-            # one gate to get into arc (if we weren't at START), one to get out
-            lst.append((arc.length+2, end_to_sec[outs[0]].id))
+            lst.append((arc.length+3, end_to_sec[outs[0]].id))
         elif start[0] != 0: # The true starting node is the other case but we dont want it
-            lst.append((arc.length+1,END_ID))
+            lst.append((arc.length+2,END_ID))
 
 nodes[0] = [(secs[0].length,end_to_sec[conn].id) 
             for conn in secs[0].e_exits]
 
+rev = {
+    END_ID: 0
+}
+i = 1
+for k in nodes:
+    rev[k] = i
+    i *= 2
+
+nodes = {
+    rev[k] : [(a,rev[b]) for (a,b) in v]
+    for k,v in nodes.items()
+}
+
 def _dfs(node,seen):
-    if node == END_ID: return 0
-    seen.add(node)
-    res = max(
-        (l + 1 + _dfs(target,seen)
+    # if node == 0: return 0
+    return node and max(
+        (l + _dfs(target,seen | node)
         for l,target in nodes[node]
-        if target not in seen),
+        if not target & seen),
         default=NINF
     )
-    seen.remove(node)
-    return res
 
-l = _dfs(0,set()) - 1
+l = _dfs(rev[0],0)
 
 print(l)
-# print(time()-_t)
+print(time()-_t)
