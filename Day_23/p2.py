@@ -1,6 +1,10 @@
 from dataclasses import dataclass
 from pathlib import Path
 from colorama import Fore, Style
+import numpy as np
+from numba import njit
+from numba.typed import Dict
+from numba.core import types
 
 from time import time
 _t = time()
@@ -165,21 +169,41 @@ for k in nodes:
     rev[k] = i
     i *= 2
 
-nodes = {
-    rev[k] : [(a,rev[b]) for (a,b) in v]
-    for k,v in nodes.items()
-}
+def wrap():
+    njit_nodes = Dict.empty(types.int64,types.int64[:])
+    # njit_nodes = {}
+    njit_lengths = Dict.empty(types.int64,types.int64[:])
+    # njit_lengths = {}
+    for k,v in nodes.items():
+        njit_nodes[rev[k]] = np.asarray([rev[b] for (_,b) in v], dtype='int64')
+        njit_lengths[rev[k]] = np.asarray([a for (a,_) in v], dtype='int64')
 
-def _dfs(node,seen):
-    # if node == 0: return 0
-    return node and max(
-        (l + _dfs(target,seen | node)
-        for l,target in nodes[node]
-        if not target & seen),
-        default=NINF
-    )
+    # print(njit_nodes)
+    # print(njit_lengths)
 
-l = _dfs(rev[0],0)
+# def _dfs(node,seen):
+#     # if node == 0: return 0
+#     return node and max(
+#         (l + _dfs(target,seen | node)
+#         for l,target in nodes[node]
+#         if not target & seen),
+#         default=NINF
+#     )
+
+    @njit
+    def dfs(node,seen,njit_nodes,njit_lengths):
+        if node == 0: return 0
+        best = NINF
+        for i,t in enumerate(njit_nodes[node]):
+            if not t & seen:
+                best = max(best,
+                            njit_lengths[node][i] + 
+                            dfs(t, seen|node, njit_nodes, njit_lengths)
+                        )
+        return best
+    return dfs(rev[0],0,njit_nodes,njit_lengths)
+
+l = wrap()
 
 print(l)
 print(time()-_t)
