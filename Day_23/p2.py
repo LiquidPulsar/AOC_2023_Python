@@ -1,5 +1,3 @@
-from time import time
-_t = time()
 from dataclasses import dataclass
 from pathlib import Path
 from colorama import Fore, Style
@@ -8,6 +6,8 @@ from numba import njit
 from numba.typed import Dict
 from numba.core import types
 
+from time import time
+_t = time()
 
 HOME = Path(__file__).parent
 NINF = int(-1e9)
@@ -162,6 +162,11 @@ for _id, lst in nodes.items():
 nodes[0] = [(secs[0].length,end_to_sec[conn].id) 
             for conn in secs[0].e_exits]
 
+d_last = next(
+    d for d,_id in nodes[last] # type: ignore
+    if _id == END_ID
+)
+
 rev = {
     END_ID: 0
 }
@@ -169,50 +174,43 @@ i = 1
 for k in nodes:
     rev[k] = i
     i *= 2
-
-nodes = {rev[k] : [(a,rev[b]) for (a,b) in v] for k,v in nodes.items()}
 last = rev[last] # type: ignore
 
 def wrap():
-    # njit_nodes = Dict.empty(types.int64,types.int64[:])
-    # njit_lengths = Dict.empty(types.int64,types.int64[:])
-    # for k,v in nodes.items():
-        # njit_nodes[rev[k]] = np.asarray([rev[b] for (_,b) in v], dtype='int64')
-        # njit_lengths[rev[k]] = np.asarray([a for (a,_) in v], dtype='int64')
-    
+    njit_nodes = Dict.empty(types.int64,types.int64[:])
+    # njit_nodes = {}
+    njit_lengths = Dict.empty(types.int64,types.int64[:])
+    # njit_lengths = {}
+    for k,v in nodes.items():
+        njit_nodes[rev[k]] = np.asarray([rev[b] for (_,b) in v], dtype='int64')
+        njit_lengths[rev[k]] = np.asarray([a for (a,_) in v], dtype='int64')
 
     # print(njit_nodes)
     # print(njit_lengths)
 
-    # @njit
-    def dfs():
-        best = 0
-        todo:list[tuple[int,int,int]] = [(rev[0],0,0)]
-        c = 0
-        while todo:
-            c += 1
-            node,seen,steps = todo.pop()
+# def _dfs(node,seen):
+#     # if node == 0: return 0
+#     return node and max(
+#         (l + _dfs(target,seen | node)
+#         for l,target in nodes[node]
+#         if not target & seen),
+#         default=NINF
+#     )
 
-            if node == last: # no need to check true end, check the node that links to the end
-                r = steps + nodes[last][0][0]
-                if r > best: best = r
-            else:
-                for l,t in nodes[node]:
-                    if not t & seen:
-                        todo.append(
-                            (t, seen|node, steps+l)
+    @njit
+    def dfs(node,seen,njit_nodes,njit_lengths):
+        if node == last: return d_last
+        best = NINF
+        for i,t in enumerate(njit_nodes[node]):
+            if not t & seen:
+                best = max(best,
+                            njit_lengths[node][i] + 
+                            dfs(t, seen|node, njit_nodes, njit_lengths)
                         )
-
-            # for i,t in enumerate(njit_nodes[node]):
-            #     if not t & seen:
-            #         todo.append(
-            #             (t, seen|node, steps + njit_lengths[node][i])
-            #         )
-        print(c)
         return best
-    return dfs()
+    return dfs(rev[0],0,njit_nodes,njit_lengths)
 
-print(time()-_t)
 l = wrap()
+
 print(l)
 print(time()-_t)
