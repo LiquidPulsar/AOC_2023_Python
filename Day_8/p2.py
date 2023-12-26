@@ -24,6 +24,8 @@ with open(HOME/"input.txt") as f:
     for curr in sources:
         past = {}
         ends = []
+        step,p = None, None # for type checking
+        # Can simplify since the loop actually ends as soon as we see a xxZ
         for step,dir in enumerate(cycle(dirs),1):
             # print(step,curr,dir)
             if curr.endswith("Z"):
@@ -32,6 +34,6 @@ with open(HOME/"input.txt") as f:
             if p in past: break
             past[p] = step
             curr = right[curr] if dir=='R' else left[curr]
-        print(curr,step - past[p],ends)
+        # print(curr,step - past[p],ends)
         lcm = math.lcm(lcm,step - past[p])
     print(lcm)
