@@ -4,7 +4,7 @@ HOME = Path(__file__).parent
 
 def can_fit(num:int,string:str):
     return num <= len(string) \
-       and all(c!='.' for c in string[:num]) \
+       and '.' not in string[:num] \
        and (num == len(string) or string[num] != '#')
 
 def view(f):
@@ -31,7 +31,7 @@ def solve(pat,nums):
 
 tot = 0
 with open(HOME/"input.txt") as f:
-    for i,line in enumerate(f):
+    for line in f:
         pat,nums = line.split()
         nums = [*map(int,nums.split(","))]
 
