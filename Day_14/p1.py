@@ -23,8 +23,8 @@ def calc_load(board):
 
 with open(HOME/"input.txt") as f:
     board = [*map(list,f.read().splitlines())]
-    print(*board,sep="\n")
+    print(*map("".join,board),sep="\n")
     print()
-    print(*roll_up(board),sep="\n")
+    print(*map("".join,roll_up(board)),sep="\n")
     print()
     print(calc_load(board))
