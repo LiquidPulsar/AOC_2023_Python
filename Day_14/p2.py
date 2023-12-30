@@ -15,7 +15,8 @@ def roll_up(board):
 
 def calc_load(board):
     return sum(
-        line.count("O") * (len(board) - row) for row, line in enumerate(board)
+        line.count("O") * (len(board) - row) 
+        for row, line in enumerate(board)
     )
 
 END = 1000000000

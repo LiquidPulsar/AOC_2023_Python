@@ -14,12 +14,10 @@ def roll_up(board):
     return board
 
 def calc_load(board):
-    tot = 0
-    for row, line in enumerate(board):
-        for char in line:
-            if char == "O":
-                tot += (len(board)-row)
-    return tot
+    return sum(
+        line.count("O") * (len(board) - row)
+        for row, line in enumerate(board)
+    )
 
 with open(HOME/"input.txt") as f:
     board = [*map(list,f.read().splitlines())]
