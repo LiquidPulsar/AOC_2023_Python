@@ -19,8 +19,8 @@ class Module:
     deps:list[str]
 
     def pulse(self, pulse:bool, inp:str, todo:deque):
-        if self.name in counters and pulse == LOW:
-            if self.name not in dcts: dcts[self.name] = i
+        if self.name in counters and pulse == LOW and self.name not in dcts:
+            dcts[self.name] = i
         if self.typ == "%":
             if pulse == LOW:
                 self.state = not self.state
